@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sparx Solver — Ad network verification</title>
+<meta name="description" content="Verification page for Sparx Solver Chrome extension ad network onboarding.">
+<meta name="theme-color" content="#10b981">
+<style>
+  *,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0e0e11;
+    --elev: rgba(255,255,255,0.04);
+    --border: rgba(255,255,255,0.08);
+    --border-strong: rgba(255,255,255,0.16);
+    --text: #f5f5f7;
+    --muted: rgba(245,245,247,0.65);
+    --dim: rgba(245,245,247,0.45);
+    --accent: #10b981;
+  }
+  html, body {
+    background: var(--bg); color: var(--text);
+    font: 16px/1.6 -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
+    letter-spacing: -0.01em;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+  }
+  body {
+    background:
+      radial-gradient(ellipse 600px 400px at 20% -5%, rgba(16,185,129,0.08), transparent 60%),
+      var(--bg);
+    display: flex; align-items: center; justify-content: center;
+    padding: 40px 20px;
+  }
+  a { color: inherit; text-decoration: none; }
+
+  .card {
+    max-width: 560px; width: 100%;
+    background: var(--elev);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 36px 30px;
+  }
+  h1 {
+    font-size: 20px; font-weight: 700;
+    letter-spacing: -0.02em;
+    margin-bottom: 14px;
+  }
+  p {
+    color: var(--muted);
+    font-size: 14px; line-height: 1.6;
+    margin-bottom: 14px;
+  }
+  .callout {
+    background: rgba(16,185,129,0.08);
+    border: 1px solid rgba(16,185,129,0.25);
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin: 18px 0;
+    font-size: 13px;
+    color: var(--text);
+  }
+  .callout a {
+    color: var(--accent); font-weight: 600;
+    word-break: break-all;
+  }
+  .callout a:hover { text-decoration: underline; }
+  .meta {
+    margin-top: 22px;
+    padding-top: 18px;
+    border-top: 1px solid var(--border);
+    font-size: 12px; color: var(--dim);
+  }
+  .meta a { color: var(--muted); }
+  .meta a:hover { color: var(--accent); }
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>Sparx Solver — ad network verification</h1>
+  <p>Hi. If you're an ad network reviewer landing here, thanks for taking a look. I put this URL in your signup form because your validator wouldn't accept the Chrome Web Store URL directly.</p>
+  <p>The actual product is a Chrome extension. Here it is:</p>
+  <div class="callout">
+    <a href="https://chromewebstore.google.com/detail/sparx-solver/hnalblmilgjpcmnhheijokjkblcgefjh" target="_blank" rel="noopener">
+      https://chromewebstore.google.com/detail/sparx-solver/hnalblmilgjpcmnhheijokjkblcgefjh
+    </a>
+  </div>
+  <p>The extension has a popup UI where a banner ad could be embedded. Traffic is real users of the extension, not bots. You can find the full landing page with features, screenshots, and description at <a href="/" style="color:var(--accent);">sparxsolver.teodorocosta.com</a>.</p>
+  <p>If you need anything else to complete verification, please reach out.</p>
+  <div class="meta">
+    Contact: <a href="mailto:teoflames@gmail.com">teoflames@gmail.com</a> · Owner: Teodoro Costa · <a href="https://teodorocosta.com">teodorocosta.com</a>
+  </div>
+</div>
+</body>
+</html>

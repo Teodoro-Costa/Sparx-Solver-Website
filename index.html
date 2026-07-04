@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sparx Solver — AI homework helper for Sparx Maths</title>
+<meta name="description" content="Sparx Solver is a Chrome extension that reads and solves Sparx Maths questions using AI. Bring your own API key. Free and paid model support.">
+<meta name="theme-color" content="#10b981">
+<meta property="og:title" content="Sparx Solver — AI homework helper for Sparx Maths">
+<meta property="og:description" content="Chrome extension that reads and solves Sparx Maths questions using AI.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://teodorocosta.com/sparxsolver">
+<style>
+  *,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0e0e11;
+    --bg-2: #15151a;
+    --elev: rgba(255,255,255,0.04);
+    --border: rgba(255,255,255,0.08);
+    --border-strong: rgba(255,255,255,0.16);
+    --text: #f5f5f7;
+    --muted: rgba(245,245,247,0.65);
+    --dim: rgba(245,245,247,0.45);
+    --accent: #10b981;
+    --accent-dim: #059669;
+  }
+  html, body {
+    background: var(--bg); color: var(--text);
+    font: 16px/1.6 -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
+    letter-spacing: -0.01em;
+    -webkit-font-smoothing: antialiased;
+  }
+  body {
+    background:
+      radial-gradient(ellipse 700px 500px at 20% -5%, rgba(16,185,129,0.10), transparent 60%),
+      radial-gradient(ellipse 500px 400px at 90% 20%, rgba(16,185,129,0.05), transparent 60%),
+      var(--bg);
+    min-height: 100vh;
+  }
+  a { color: inherit; text-decoration: none; }
+
+  .wrap {
+    max-width: 720px; margin: 0 auto;
+    padding: 60px 28px 80px;
+  }
+
+  /* ============ Header / hero ============ */
+  header {
+    display: flex; align-items: center; gap: 16px;
+    margin-bottom: 40px;
+  }
+  .logo {
+    width: 64px; height: 64px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #10b981, #059669);
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-weight: 800; font-size: 30px;
+    flex-shrink: 0;
+    box-shadow: 0 8px 24px rgba(16,185,129,0.25);
+  }
+  .meta h1 {
+    font-size: 26px; font-weight: 700; letter-spacing: -0.02em;
+    margin-bottom: 2px;
+  }
+  .meta .tagline {
+    color: var(--muted); font-size: 14px;
+  }
+
+  .hero {
+    background: var(--elev);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px;
+    margin-bottom: 32px;
+  }
+  .hero h2 {
+    font-size: 22px; font-weight: 700; letter-spacing: -0.02em;
+    margin-bottom: 10px;
+  }
+  .hero p { color: var(--muted); margin-bottom: 20px; }
+  .cta {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--accent); color: #0e0e11;
+    padding: 10px 18px; border-radius: 10px;
+    font-weight: 600; font-size: 14px;
+    transition: transform 0.1s, box-shadow 0.2s;
+    box-shadow: 0 4px 14px rgba(16,185,129,0.35);
+  }
+  .cta:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(16,185,129,0.45);
+  }
+  .cta-secondary {
+    display: inline-flex; align-items: center; gap: 8px;
+    color: var(--muted); padding: 10px 12px;
+    font-size: 13px;
+  }
+  .cta-secondary:hover { color: var(--text); }
+
+  /* ============ Sections ============ */
+  section { margin-bottom: 40px; }
+  h3.section-title {
+    font-size: 12px; text-transform: uppercase; letter-spacing: 1.4px;
+    color: var(--dim); font-weight: 600;
+    margin-bottom: 14px;
+  }
+
+  .features {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+  }
+  @media (max-width: 520px) {
+    .features { grid-template-columns: 1fr; }
+  }
+  .feature {
+    background: var(--elev);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+  }
+  .feature h4 {
+    font-size: 14px; font-weight: 600; margin-bottom: 4px;
+  }
+  .feature p {
+    font-size: 13px; color: var(--muted); line-height: 1.5;
+  }
+
+  .steps { list-style: none; counter-reset: step; }
+  .steps li {
+    counter-increment: step;
+    position: relative;
+    padding: 12px 0 12px 40px;
+    border-bottom: 1px solid var(--border);
+    font-size: 14px;
+    color: var(--muted);
+  }
+  .steps li:last-child { border-bottom: none; }
+  .steps li::before {
+    content: counter(step);
+    position: absolute; left: 0; top: 12px;
+    width: 26px; height: 26px;
+    background: var(--elev);
+    border: 1px solid var(--border-strong);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 600; color: var(--accent);
+  }
+  .steps li strong { color: var(--text); font-weight: 600; }
+
+  .faq details {
+    background: var(--elev);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 18px;
+    margin-bottom: 10px;
+    cursor: pointer;
+  }
+  .faq summary {
+    font-weight: 600; font-size: 14px;
+    list-style: none;
+  }
+  .faq summary::-webkit-details-marker { display: none; }
+  .faq summary::after {
+    content: '+';
+    float: right;
+    color: var(--dim); font-weight: 400;
+  }
+  .faq details[open] summary::after { content: '−'; }
+  .faq details p {
+    color: var(--muted); font-size: 13px;
+    margin-top: 10px; line-height: 1.6;
+  }
+  .faq details p + p { margin-top: 8px; }
+
+  /* ============ Disclaimer + footer ============ */
+  .disclaimer {
+    background: var(--elev);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 18px;
+    font-size: 12px; color: var(--dim); line-height: 1.6;
+    margin-bottom: 32px;
+  }
+  .disclaimer strong { color: var(--muted); }
+
+  footer {
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+    font-size: 12px; color: var(--dim);
+    display: flex; justify-content: space-between; align-items: center;
+    flex-wrap: wrap; gap: 10px;
+  }
+  footer a { color: var(--muted); transition: color 0.15s; }
+  footer a:hover { color: var(--accent); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo">S</div>
+    <div class="meta">
+      <h1>Sparx Solver</h1>
+      <div class="tagline">AI homework helper for Sparx Maths</div>
+    </div>
+  </header>
+
+  <div class="hero">
+    <h2>Solve Sparx Maths questions with any AI you like.</h2>
+    <p>Sparx Solver is a Chrome extension that reads a Sparx Maths question, sends it to the AI model of your choice, and shows a clean answer + explanation. Bring your own key from Groq, Google, or Anthropic — the extension is free and open to any model you plug in.</p>
+    <a class="cta" href="https://chromewebstore.google.com/detail/sparx-solver/hnalblmilgjpcmnhheijokjkblcgefjh" target="_blank" rel="noopener">Install from Chrome Web Store</a>
+    <a class="cta-secondary" href="https://github.com/Teodoro-Costa" target="_blank" rel="noopener">Source on GitHub →</a>
+  </div>
+
+  <section>
+    <h3 class="section-title">Features</h3>
+    <div class="features">
+      <div class="feature">
+        <h4>Bring your own key</h4>
+        <p>Groq (free), Gemini (free), or Anthropic Claude (paid). Nothing is billed by the extension.</p>
+      </div>
+      <div class="feature">
+        <h4>Reads text and images</h4>
+        <p>Handles image-based questions on supported vision models. Full markdown + LaTeX rendering.</p>
+      </div>
+      <div class="feature">
+        <h4>Auto-fill answers</h4>
+        <p>Optional: types the answer into the box for you. You choose whether to submit.</p>
+      </div>
+      <div class="feature">
+        <h4>Bookwork tracking</h4>
+        <p>Keeps a history of solved questions so you can review your workings later.</p>
+      </div>
+      <div class="feature">
+        <h4>100 Club drill</h4>
+        <p>Times-tables mode with a configurable minimum question time so answers look natural.</p>
+      </div>
+      <div class="feature">
+        <h4>Local storage only</h4>
+        <p>Your API key stays in your browser. No servers, no analytics.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h3 class="section-title">How it works</h3>
+    <ol class="steps">
+      <li><strong>Install</strong> the extension from the Chrome Web Store.</li>
+      <li><strong>Add a free API key</strong> from Groq or Google AI Studio. Paste it into the popup.</li>
+      <li><strong>Open a Sparx question</strong>, click Solve or Auto-fill. Done.</li>
+    </ol>
+  </section>
+
+  <section class="faq">
+    <h3 class="section-title">FAQ</h3>
+    <details>
+      <summary>Is it free?</summary>
+      <p>The extension is free. You pay only for the AI you choose — and Groq and Gemini offer free tiers that cover typical homework use.</p>
+    </details>
+    <details>
+      <summary>Do you see my API key or my answers?</summary>
+      <p>No. Everything runs locally in your browser. There is no Sparx Solver server. Your key is stored in Chrome local storage and only sent directly to the AI provider you pick.</p>
+    </details>
+    <details>
+      <summary>Which AI is best?</summary>
+      <p>Claude Sonnet 4.6 gives the most accurate maths answers if you're happy to pay. Groq's GPT-OSS is free and fast for text questions. Gemini Flash Latest is free and handles images.</p>
+    </details>
+    <details>
+      <summary>Will this get me caught?</summary>
+      <p>Using AI to complete school work may violate your school's academic integrity policy and Sparx Learning's Terms of Service. Use responsibly. See the disclaimer below.</p>
+    </details>
+  </section>
+
+  <div class="disclaimer">
+    <strong>Disclaimer.</strong> Provided as-is for personal use. The user is solely responsible for the use of this extension. Using AI to complete assigned homework may violate your school's academic integrity policy and Sparx Learning's Terms of Service. The developer is not liable for any consequences, including account suspension, disciplinary action, or grade penalties. Not affiliated with Sparx Learning Ltd.
+  </div>
+
+  <footer>
+    <div>© <span id="year">2026</span> Teodoro Costa</div>
+    <div>
+      <a href="mailto:teoflames@gmail.com">Contact</a> ·
+      <a href="https://teodorocosta.com">teodorocosta.com</a>
+    </div>
+  </footer>
+</div>
+<script>
+  document.getElementById('year').textContent = new Date().getFullYear();
+</script>
+</body>
+</html>
