@@ -1,0 +1,13 @@
+name = "sparx-solver-stats"
+main = "src/index.js"
+compatibility_date = "2026-09-01"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "sparx-solver-stats"
+database_id = "d0c70de0-af56-40e6-836f-9bec8233e6fc"
+
+[[rules]]
+type = "Text"
+globs = ["**/*.html"]
+fallthrough = true
