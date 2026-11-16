@@ -11,7 +11,7 @@
     --border: rgba(255,255,255,0.08); --border-strong: rgba(255,255,255,0.16);
     --text: #f5f5f7; --muted: rgba(245,245,247,0.65); --dim: rgba(245,245,247,0.45);
     --accent: #8b7bff; --accent-soft: rgba(139,123,255,0.18); --warn: #f2a65a;
-    --grid: rgba(255,255,255,0.07);
+    --grid: rgba(255,255,255,0.07); --reader: #3fc1a5;
   }
   * { box-sizing: border-box; }
   body { margin: 0; background: var(--bg); color: var(--text); font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, sans-serif; }
@@ -52,6 +52,8 @@
   table { border-collapse: collapse; margin-top: 8px; font-variant-numeric: tabular-nums; }
   td, th { padding: 2px 14px 2px 0; text-align: left; }
   .legend-note { color: var(--dim); font-size: 11px; margin-top: 10px; }
+  .legend { display: flex; gap: 14px; font-size: 12px; color: var(--muted); margin-bottom: 8px; }
+  .legend i { display: inline-block; width: 10px; height: 3px; border-radius: 2px; vertical-align: middle; margin-right: 5px; }
   @media (max-width: 520px) { .bar-row { grid-template-columns: 110px 1fr 44px; } }
 </style>
 </head>
@@ -77,13 +79,14 @@
   <div id="dash" style="display:none">
     <div class="tiles">
       <div class="card tile"><div class="label">Active today</div><div class="value" id="tToday">–</div><div class="note" id="tTodayNote"></div></div>
-      <div class="card tile"><div class="label">Weekly active</div><div class="value" id="tWau">–</div><div class="note">last 7 days</div></div>
-      <div class="card tile"><div class="label">Monthly active</div><div class="value" id="tMau">–</div><div class="note">last 30 days</div></div>
+      <div class="card tile"><div class="label">Weekly active</div><div class="value" id="tWau">–</div><div class="note" id="tWauNote">last 7 days</div></div>
+      <div class="card tile"><div class="label">Monthly active</div><div class="value" id="tMau">–</div><div class="note" id="tMauNote">last 30 days</div></div>
       <div class="card tile"><div class="label">Questions auto-filled</div><div class="value" id="tSubmits">–</div><div class="note">last 7 days</div></div>
     </div>
 
     <section class="card">
       <h2>Daily active users · 90 days</h2>
+      <div class="legend"><span><i style="background:var(--accent)"></i>Maths</span><span><i style="background:var(--reader)"></i>Reader</span><span style="color:var(--dim)">Active = answered at least one question that day (UTC)</span></div>
       <div class="chart-wrap" id="dauWrap">
         <svg id="dauChart" role="img" aria-label="Daily active users over the last 90 days"></svg>
         <div class="tip" id="dauTip"></div>
@@ -97,7 +100,7 @@
           <div class="seg" id="rangeSeg"><button data-r="7" class="on">7 days</button><button data-r="30">30 days</button></div>
         </div>
         <div class="bars" id="featureBars"></div>
-        <div class="legend-note">Counts arrive with each user's next daily ping, so the latest day fills in a day late.</div>
+        <div class="legend-note">Counts are sent on the first answer of the day and the next time Sparx is opened, so today fills in over the next day.</div>
       </section>
       <section class="card">
         <h2>Auto-fill outcomes</h2>
@@ -121,14 +124,16 @@
   var FEATURES = [
     ['open', 'Opened Sparx'], ['solve', 'Solve with AI'], ['autofill_start', 'Auto-fill started'],
     ['club_start', '100 Club started'], ['club_answer', '100 Club answers'], ['calc_open', 'Calculator opened'],
-    ['bookwork_auto', 'Bookwork auto-answered'], ['ai_error', 'AI errors']
+    ['bookwork_auto', 'Bookwork auto-answered'], ['ai_error', 'AI errors'],
+    ['reader_open', 'Reader: opened'], ['reader_answer', 'Reader: questions answered'], ['reader_ai', 'Reader: asked the AI'],
+    ['reader_autofill_start', 'Reader: auto-fill started'], ['reader_error', 'Reader: AI errors']
   ];
   var OUTCOMES = [
     ['autofill_submit', 'Submitted', false], ['stop_wrong', 'Marked wrong', true], ['stop_no_card', 'No card matched', true],
     ['stop_keyboard', "Box wouldn't take typing", true], ['stop_no_box', 'No answer box found', true],
     ['stop_picture', 'Picture question failed', true], ['stop_error', 'Other error', true]
   ];
-  var MODEL_NAMES = { groq: 'Groq', gemini: 'Gemini', claude: 'Claude', other: 'Other' };
+  var MODEL_NAMES = { groq: 'Groq', gemini: 'Gemini', claude: 'Claude', pro: 'Pro', other: 'Other' };
   var data = null, range = 7;
 
   function store(k, v) { try { if (v === undefined) return localStorage.getItem(k); if (v === null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch (e) { return null; } }
@@ -171,7 +176,7 @@
     var pts = data.dau, svg = el('dauChart'), wrap = el('dauWrap');
     var W = Math.max(320, wrap.clientWidth), H = 220, m = { l: 40, r: 12, t: 12, b: 26 };
     var iw = W - m.l - m.r, ih = H - m.t - m.b;
-    var maxV = Math.max.apply(null, pts.map(function (p) { return p.users; }));
+    var maxV = Math.max.apply(null, pts.map(function (p) { return Math.max(p.users, p.maths || 0, p.reader || 0); }));
     var step = maxV <= 5 ? 1 : Math.pow(10, Math.floor(Math.log10(maxV))) * (maxV / Math.pow(10, Math.floor(Math.log10(maxV))) > 5 ? 2 : 1);
     var top = Math.max(step, Math.ceil(maxV / step) * step);
     var x = function (i) { return m.l + (pts.length === 1 ? iw / 2 : i / (pts.length - 1) * iw); };
@@ -185,12 +190,14 @@
       var d = new Date(pts[i].day + 'T00:00:00Z');
       g += '<text x="' + x(i) + '" y="' + (H - 6) + '" text-anchor="middle">' + d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', timeZone: 'UTC' }) + '</text>';
     }
-    var line = pts.map(function (p, i) { return (i ? 'L' : 'M') + x(i).toFixed(1) + ' ' + y(p.users).toFixed(1); }).join(' ');
-    var area = line + ' L' + x(pts.length - 1) + ' ' + y(0) + ' L' + x(0) + ' ' + y(0) + ' Z';
+    function path(k) { return pts.map(function (p, i) { return (i ? 'L' : 'M') + x(i).toFixed(1) + ' ' + y(p[k] || 0).toFixed(1); }).join(' '); }
+    var line = path('maths'), rline = path('reader');
+    var area = path('users') + ' L' + x(pts.length - 1) + ' ' + y(0) + ' L' + x(0) + ' ' + y(0) + ' Z';
     svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
     svg.innerHTML = '<g class="axis">' + g + '</g>' +
       '<path d="' + area + '" fill="var(--accent-soft)"/>' +
       '<path d="' + line + '" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>' +
+      '<path d="' + rline + '" fill="none" stroke="var(--reader)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>' +
       '<line id="xh" y1="' + m.t + '" y2="' + (m.t + ih) + '" stroke="var(--border-strong)" style="display:none"/>' +
       '<circle id="xdot" r="4.5" fill="var(--accent)" stroke="var(--bg-2)" stroke-width="2" style="display:none"/>' +
       '<rect x="' + m.l + '" y="' + m.t + '" width="' + iw + '" height="' + ih + '" fill="transparent" id="hit"/>';
@@ -202,7 +209,7 @@
       xh.setAttribute('x1', px); xh.setAttribute('x2', px); xh.style.display = '';
       dot.setAttribute('cx', px); dot.setAttribute('cy', py); dot.style.display = '';
       var d = new Date(p.day + 'T00:00:00Z').toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC' });
-      tip.innerHTML = d + ' · <b>' + fmt(p.users) + '</b> users';
+      tip.innerHTML = d + ' · <b>' + fmt(p.users) + '</b> active<br>Maths <b>' + fmt(p.maths) + '</b> · Reader <b>' + fmt(p.reader) + '</b> · opened Sparx <b>' + fmt(p.opened) + '</b>';
       tip.style.opacity = 1;
       var tx = px / W * r.width, tw = tip.offsetWidth;
       tip.style.left = Math.max(0, Math.min(r.width - tw, tx - tw / 2)) + 'px';
@@ -211,15 +218,20 @@
     var hit = svg.querySelector('#hit');
     hit.addEventListener('pointermove', function (e) { hover(e.clientX); });
     hit.addEventListener('pointerleave', function () { tip.style.opacity = 0; xh.style.display = 'none'; dot.style.display = 'none'; });
-    el('dauTable').innerHTML = '<tr><th>Day</th><th>Users</th></tr>' + pts.slice().reverse().map(function (p) { return '<tr><td>' + p.day + '</td><td>' + fmt(p.users) + '</td></tr>'; }).join('');
+    el('dauTable').innerHTML = '<tr><th>Day</th><th>Active</th><th>Maths</th><th>Reader</th><th>Opened</th></tr>' + pts.slice().reverse().map(function (p) {
+      return '<tr><td>' + p.day + '</td><td>' + fmt(p.users) + '</td><td>' + fmt(p.maths) + '</td><td>' + fmt(p.reader) + '</td><td>' + fmt(p.opened) + '</td></tr>';
+    }).join('');
   }
 
   function render() {
     var today = data.dau[data.dau.length - 1], yday = data.dau[data.dau.length - 2];
     el('tToday').textContent = fmt(today.users);
-    el('tTodayNote').textContent = 'yesterday ' + fmt(yday ? yday.users : 0) + ' (UTC days)';
+    el('tTodayNote').textContent = 'Maths ' + fmt(today.maths) + ' · Reader ' + fmt(today.reader) + ' · yesterday ' + fmt(yday ? yday.users : 0);
     el('tWau').textContent = fmt(data.wau);
     el('tMau').textContent = fmt(data.mau);
+    var ws = data.wauSplit || {}, ms = data.mauSplit || {};
+    el('tWauNote').textContent = 'last 7 days · Maths ' + fmt(ws.maths) + ' · Reader ' + fmt(ws.reader);
+    el('tMauNote').textContent = 'last 30 days · Maths ' + fmt(ms.maths) + ' · Reader ' + fmt(ms.reader);
     el('tSubmits').textContent = fmt((data.events7 || {}).autofill_submit);
     el('updated').textContent = 'Updated ' + new Date(data.generated).toLocaleString('en-GB') + ' · anonymous counts from the daily ping';
     renderDau();
